@@ -1,0 +1,7 @@
+[package]
+name = "keygen"
+version = "0.1.0"
+authors = ["Xuming Zeng <xsznix@gmail.com>"]
+
+[dependencies]
+rand = "0.3"
