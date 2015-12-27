@@ -11,8 +11,8 @@ use annealing;
 
 const MAX_SWAPS_PER_ITERATION: usize = 4;
 
-pub fn simulate<'a>(string: &'a str, init_layout: &'a layout::Layout, penalties: &'a Vec<penalty::KeyPenalty<'a>>) {
-	let penalty = penalty::calculate_penalty(string, init_layout, penalties);
+pub fn simulate<'a>(quartads: &penalty::QuartadList<'a>, len: usize, init_layout: &'a layout::Layout, penalties: &'a Vec<penalty::KeyPenalty<'a>>) {
+	let penalty = penalty::calculate_penalty(&quartads, len, init_layout, penalties);
 	println!("Initial layout:");
 	print_result(init_layout, &penalty);
 
@@ -23,7 +23,7 @@ pub fn simulate<'a>(string: &'a str, init_layout: &'a layout::Layout, penalties:
 		let curr_penalty;
 		curr_layout.shuffle(random::<usize>() % MAX_SWAPS_PER_ITERATION + 1);
 		{
-			let penalty = penalty::calculate_penalty(string, &curr_layout, penalties);
+			let penalty = penalty::calculate_penalty(&quartads, len, &curr_layout, penalties);
 			println!("Iteration {}", i);
 			print_result(&curr_layout, &penalty);
 			curr_penalty = penalty.1;

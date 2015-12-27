@@ -187,7 +187,7 @@ impl Layout {
 		let mut i = random::<usize>() % LAYOUT_MASK_NUM_SWAPPABLE;
 		let mut j = random::<usize>() % (LAYOUT_MASK_NUM_SWAPPABLE - 1);
 		if j >= i {
-			j = j + 1;
+			j += 1;
 		}
 		// println!("i j = {} {}", i, j);
 
@@ -229,7 +229,7 @@ impl Layer {
 }
 
 impl LayoutPosMap {
-	fn get_key_position(&self, kc: char) -> Option<usize> {
+	pub fn get_key_position(&self, kc: char) -> Option<usize> {
 		let LayoutPosMap(map) = *self;
 		if kc < (128 as char) {
 			map[kc as usize]

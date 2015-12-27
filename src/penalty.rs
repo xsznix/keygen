@@ -2,10 +2,12 @@
 /// corpus string.
 
 use std::vec::Vec;
+use std::ops::Range;
 use std::collections::HashMap;
 use std::fmt;
 
 use layout::Layout;
+use layout::LayoutPosMap;
 use layout::KeyMap;
 use layout::KeyPress;
 use layout::Finger;
@@ -22,6 +24,8 @@ pub struct KeyPenaltyResult<'a> {
 	pub total: f64,
 	pub high_keys: HashMap<&'a str, f64>,
 }
+
+pub struct QuartadList<'a>(HashMap<&'a str, usize>);
 
 impl <'a> fmt::Display for KeyPenaltyResult<'a> {
 	fn fmt (&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -214,7 +218,31 @@ pub fn init<'a>() -> Vec<KeyPenalty<'a>> {
 	penalties
 }
 
-pub fn calculate_penalty<'a>(string: &'a str, layout: &'a Layout, penalties: &'a Vec<KeyPenalty>) -> (f64, f64, Vec<KeyPenaltyResult<'a>>) {
+pub fn prepare_quartad_list<'a>(string: &'a str, position_map: &'a LayoutPosMap) -> QuartadList<'a> {
+	let mut range: Range<usize> = 0..0;
+	let mut quartads: HashMap<&str, usize> = HashMap::new();
+	for (i, c) in string.chars().enumerate() {
+		match position_map.get_key_position(c) {
+			Some(_) => {
+				range.end = i + 1;
+				if range.end > 3 && range.start < range.end - 4 {
+					range.start = range.end - 4;
+				}
+				let quartad = &string[range.clone()];
+				let entry = quartads.entry(quartad).or_insert(0);
+				*entry += 1;
+			},
+			None => {
+				range = (i + 1)..(i + 1);
+			}
+		}
+	}
+
+	QuartadList(quartads)
+}
+
+pub fn calculate_penalty<'a>(quartads: &QuartadList<'a>, len: usize, layout: &'a Layout, penalties: &'a Vec<KeyPenalty>) -> (f64, f64, Vec<KeyPenaltyResult<'a>>) {
+	let QuartadList(ref quartads) = *quartads;
 	let mut result: Vec<KeyPenaltyResult> = Vec::new();
 	let mut total = 0.0;
 	for penalty in penalties {
@@ -225,34 +253,58 @@ pub fn calculate_penalty<'a>(string: &'a str, layout: &'a Layout, penalties: &'a
 		});
 	}
 
-	let mut old1: Option<KeyPress> = None;
-	let mut old2: Option<KeyPress> = None;
-	let mut old3: Option<KeyPress> = None;
-	let map = layout.get_position_map();
-	for (i, c) in string.chars().enumerate() {
-		let c = if c == '\n' { ' ' } else { c };
-		let keypress = KeyPress::new(c, &map);
-		if let Some(kp) = keypress {
-			for (j, penalty) in penalties.into_iter().enumerate() {
-				let p = (*penalty.f)(&kp, &old1, &old2, &old3);
-				if p != 0.0 {
-					total += p;
-					result[j].total += p;
-
-					let slice = &string[(i + 1 - penalty.keys_compared)..(i + 1)];
-					let entry = result[j].high_keys.entry(slice).or_insert(0.0);
-					*entry += p;
-				}
-			}
-			old3 = old2;
-			old2 = old1;
-			old1 = Some(kp);
-		} else {
-			old1 = None;
-			old2 = None;
-			old3 = None;
+	let position_map = layout.get_position_map();
+	for (string, count) in quartads {
+		let p = penalty_for_quartad(string, *count, &position_map, &penalties, &mut result);
+		if p != 0.0 {
+			total += p;
 		}
 	}
 
-	(total, total / (string.len() as f64), result)
+	(total, total / (len as f64), result)
+}
+
+fn penalty_for_quartad<'a, 'b>(string: &'a str, count: usize, position_map: &'b LayoutPosMap, penalties: &'a Vec<KeyPenalty>, result: &'b mut Vec<KeyPenaltyResult<'a>>) -> f64 {
+	let len = string.len();
+	let mut total = 0.0;
+	let chars: Vec<char> = string.chars().rev().collect();
+	let mut chars_iter = chars.into_iter();
+	let opt_curr = chars_iter.next();
+	let opt_old1 = chars_iter.next();
+	let opt_old2 = chars_iter.next();
+	let opt_old3 = chars_iter.next();
+
+	let curr = match opt_curr {
+		Some(c) => match KeyPress::new(c, &position_map) {
+			Some(kp) => kp,
+			None => { return 0.0 }
+		},
+		None => panic!("unreachable")
+	};
+	let old1 = match opt_old1 {
+		Some(c) => KeyPress::new(c, &position_map),
+		None => None
+	};
+	let old2 = match opt_old2 {
+		Some(c) => KeyPress::new(c, &position_map),
+		None => None
+	};
+	let old3 = match opt_old3 {
+		Some(c) => KeyPress::new(c, &position_map),
+		None => None
+	};
+
+	for (i, penalty) in penalties.into_iter().enumerate() {
+		let p = (*penalty.f)(&curr, &old1, &old2, &old3) * (count as f64);
+		if p != 0.0 {
+			total += p;
+			result[i].total += p;
+
+			let slice = &string[(len - penalty.keys_compared)..len];
+			let entry = result[i].high_keys.entry(slice).or_insert(0.0);
+			*entry += p;
+		}
+	}
+
+	total
 }
