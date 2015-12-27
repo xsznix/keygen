@@ -1,3 +1,5 @@
+#![feature(linked_list_extras)]
+
 mod layout;
 mod penalty;
 mod annealing;
@@ -7,7 +9,8 @@ use std::env;
 use std::fs::File;
 use std::io::Read;
 
-fn main() {
+fn main()
+{
 	let penalties = penalty::init();
 	if let Some(test_str) = env::args().nth(1) {
 		if let Ok(mut f) = File::open(test_str) {

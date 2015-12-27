@@ -13,21 +13,24 @@ use layout::KeyPress;
 use layout::Finger;
 use layout::Row;
 
-pub struct KeyPenalty<'a> {
-	name: &'a str,
+pub struct KeyPenalty<'a>
+{
+	name:      &'a str,
 	keys_compared: usize,
-	f: Box<Fn(&KeyPress, &Option<KeyPress>, &Option<KeyPress>, &Option<KeyPress>) -> f64>,
+	f:             Box<Fn(&KeyPress, &Option<KeyPress>, &Option<KeyPress>, &Option<KeyPress>) -> f64>,
 }
 
-pub struct KeyPenaltyResult<'a> {
-	pub name: &'a str,
-	pub total: f64,
+pub struct KeyPenaltyResult<'a>
+{
+	pub name:  &'a str,
+	pub total:     f64,
 	pub high_keys: HashMap<&'a str, f64>,
 }
 
 pub struct QuartadList<'a>(HashMap<&'a str, usize>);
 
-impl <'a> fmt::Display for KeyPenaltyResult<'a> {
+impl <'a> fmt::Display for KeyPenaltyResult<'a>
+{
 	fn fmt (&self, f: &mut fmt::Formatter) -> fmt::Result {
 		write!(f, "{}: {}", self.name, self.total)
 	}
@@ -39,7 +42,9 @@ static BASE_PENALTY: KeyMap<f64> = KeyMap([
 	3.0, 2.5, 2.0, 2.0, 3.0,    3.0, 2.0, 2.0, 2.5, 3.0,
 	0.0]);
 
-pub fn init<'a>() -> Vec<KeyPenalty<'a>> {
+pub fn init<'a>()
+-> Vec<KeyPenalty<'a>>
+{
 	let mut penalties = Vec::new();
 
 	// Base penalty.
@@ -83,7 +88,8 @@ pub fn init<'a>() -> Vec<KeyPenalty<'a>> {
 	});
 
 	// Penalise 8 points for jumping from top to bottom row or from bottom to
-	// top row on consecutive fingers, excluding middle--index.
+	// top row on consecutive fingers, except for middle finger-top row ->
+	// index finger-bottom row.
 	penalties.push(KeyPenalty {
 		name: "long jump consecutive",
 		keys_compared: 2,
@@ -95,7 +101,9 @@ pub fn init<'a>() -> Vec<KeyPenalty<'a>> {
 					if curr.finger == Finger::Ring   && old.finger == Finger::Pinky  ||
 					   curr.finger == Finger::Pinky  && old.finger == Finger::Ring   ||
 					   curr.finger == Finger::Middle && old.finger == Finger::Ring   ||
-					   curr.finger == Finger::Ring   && old.finger == Finger::Middle {
+					   curr.finger == Finger::Ring   && old.finger == Finger::Middle ||
+					  (curr.finger == Finger::Index  && old.finger == Finger::Middle &&
+					   curr.row == Row::Top && old.row == Row::Bottom) {
 						8.0
 					} else { 0.0 }
 				} else { 0.0 }
@@ -187,9 +195,13 @@ pub fn init<'a>() -> Vec<KeyPenalty<'a>> {
 			if let Some(ref old1) = *old1 {
 				if curr.hand == old1.hand {
 					if old1.finger == Finger::Ring && curr.finger == Finger::Pinky ||
-					   old1.finger == Finger::Middle && curr.finger == Finger::Ring ||
-					   old1.finger == Finger::Index && curr.finger == Finger::Ring ||
-					   old1.finger == Finger::Index && curr.finger == Finger::Middle {
+					   old1.finger == Finger::Middle &&
+					       (curr.finger == Finger::Ring ||
+					        curr.finger == Finger::Pinky) ||
+					   old1.finger == Finger::Index &&
+					       (curr.finger == Finger::Middle ||
+					        curr.finger == Finger::Ring ||
+					        curr.finger == Finger::Pinky) {
 						0.5
 					} else { 0.0 }
 				} else { 0.0 }
@@ -204,9 +216,13 @@ pub fn init<'a>() -> Vec<KeyPenalty<'a>> {
 		f: Box::new(|curr, old1, _, _| {
 			if let Some(ref old1) = *old1 {
 				if curr.hand == old1.hand {
-					if old1.finger == Finger::Pinky && curr.finger == Finger::Ring ||
-					   old1.finger == Finger::Ring && curr.finger == Finger::Middle ||
-					   old1.finger == Finger::Ring && curr.finger == Finger::Index ||
+					if old1.finger == Finger::Pinky &&
+					       (curr.finger == Finger::Ring ||
+					        curr.finger == Finger::Middle ||
+					        curr.finger == Finger::Index) ||
+					   old1.finger == Finger::Ring &&
+					       (curr.finger == Finger::Middle ||
+					        curr.finger == Finger::Index) ||
 					   old1.finger == Finger::Middle && curr.finger == Finger::Index {
 						-0.5
 					} else { 0.0 }
@@ -218,7 +234,11 @@ pub fn init<'a>() -> Vec<KeyPenalty<'a>> {
 	penalties
 }
 
-pub fn prepare_quartad_list<'a>(string: &'a str, position_map: &'a LayoutPosMap) -> QuartadList<'a> {
+pub fn prepare_quartad_list<'a>(
+	string:       &'a str,
+	position_map: &'a LayoutPosMap)
+-> QuartadList<'a>
+{
 	let mut range: Range<usize> = 0..0;
 	let mut quartads: HashMap<&str, usize> = HashMap::new();
 	for (i, c) in string.chars().enumerate() {
@@ -241,7 +261,13 @@ pub fn prepare_quartad_list<'a>(string: &'a str, position_map: &'a LayoutPosMap)
 	QuartadList(quartads)
 }
 
-pub fn calculate_penalty<'a>(quartads: &QuartadList<'a>, len: usize, layout: &'a Layout, penalties: &'a Vec<KeyPenalty>) -> (f64, f64, Vec<KeyPenaltyResult<'a>>) {
+pub fn calculate_penalty<'a>(
+	quartads:  &   QuartadList<'a>,
+	len:           usize,
+	layout:    &   Layout,
+	penalties: &'a Vec<KeyPenalty>)
+-> (f64, f64, Vec<KeyPenaltyResult<'a>>)
+{
 	let QuartadList(ref quartads) = *quartads;
 	let mut result: Vec<KeyPenaltyResult> = Vec::new();
 	let mut total = 0.0;
@@ -264,7 +290,14 @@ pub fn calculate_penalty<'a>(quartads: &QuartadList<'a>, len: usize, layout: &'a
 	(total, total / (len as f64), result)
 }
 
-fn penalty_for_quartad<'a, 'b>(string: &'a str, count: usize, position_map: &'b LayoutPosMap, penalties: &'a Vec<KeyPenalty>, result: &'b mut Vec<KeyPenaltyResult<'a>>) -> f64 {
+fn penalty_for_quartad<'a, 'b>(
+	string:       &'a str,
+	count:            usize,
+	position_map: &'b LayoutPosMap,
+	penalties:    &'a Vec<KeyPenalty>,
+	result:       &'b mut Vec<KeyPenaltyResult<'a>>)
+-> f64
+{
 	let len = string.len();
 	let mut total = 0.0;
 	let chars: Vec<char> = string.chars().rev().collect();

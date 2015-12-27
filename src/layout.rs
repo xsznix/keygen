@@ -19,8 +19,11 @@ use self::rand::random;
 
 pub struct KeyMap<T>(pub [T; 33]);
 
-impl <T: Copy> Clone for KeyMap<T> {
-	fn clone(&self) -> KeyMap<T> {
+impl <T: Copy> Clone for KeyMap<T>
+{
+	fn clone(&self)
+	-> KeyMap<T>
+	{
 		KeyMap(self.0)
 	}
 }
@@ -37,7 +40,8 @@ pub struct LayoutPosMap([Option<usize>; 128]);
 pub struct LayoutShuffleMask(KeyMap<bool>);
 
 #[derive(Clone, Copy, PartialEq)]
-pub enum Finger {
+pub enum Finger 
+{
 	Thumb,
 	Index,
 	Middle,
@@ -46,25 +50,28 @@ pub enum Finger {
 }
 
 #[derive(Clone, Copy, PartialEq)]
-pub enum Hand {
+pub enum Hand
+{
 	Left,
 	Right,
 }
 
 #[derive(Clone, Copy, PartialEq)]
-pub enum Row {
+pub enum Row
+{
 	Top,
 	Home,
 	Bottom,
 	Thumb,
 }
 
-pub struct KeyPress {
-	pub kc: char,
-	pub pos: usize,
+pub struct KeyPress
+{
+	pub kc:     char,
+	pub pos:    usize,
 	pub finger: Finger,
-	pub hand: Hand,
-	pub row: Row,
+	pub hand:   Hand,
+	pub row:    Row,
 }
 
 /* ------- *
@@ -72,12 +79,12 @@ pub struct KeyPress {
  * ------- */
 
 pub static INIT_LAYOUT: Layout = Layout(
-	Layer(KeyMap(['q', 'u', 'p', 'g', '/',   'z', 'l', 'w', 'y', '-', '=',
-	              'a', 'r', 'n', 's', 'd',   'f', 'h', 't', 'i', 'o', '\'',
+	Layer(KeyMap(['q', 'u', 'p', 'g', '/',   'z', 'l', 'w', 'y', '\'', '=',
+	              'a', 'r', 'n', 's', 'd',   'f', 'h', 't', 'i', 'o',  '-',
 	              'j', 'k', 'v', 'c', ';',   'x', 'm', 'b', ',', '.',
 	              'e'])),
-	Layer(KeyMap(['Q', 'U', 'P', 'G', '?',   'Z', 'L', 'W', 'Y', '_', '+',
-	              'A', 'R', 'N', 'S', 'D',   'F', 'H', 'T', 'I', 'O', '"',
+	Layer(KeyMap(['Q', 'U', 'P', 'G', '?',   'Z', 'L', 'W', 'Y', '"', '+',
+	              'A', 'R', 'N', 'S', 'D',   'F', 'H', 'T', 'I', 'O', '_',
 	              'J', 'K', 'V', 'C', ':',   'X', 'M', 'B', '<', '>',
 	              'E'])));
 
@@ -138,10 +145,10 @@ pub static WORKMAN_LAYOUT: Layout = Layout(
 
 static LAYOUT_MASK: LayoutShuffleMask = LayoutShuffleMask(KeyMap([
 	true,  true,  true,  true,  true,  true,  true,  true,  true,  true,  false,
-	true,  true,  true,  true,  true,  true,  true,  true,  true,  true,  true,
+	true,  true,  true,  true,  true,  true,  true,  true,  true,  true,  false,
 	true,  true,  true,  true,  true,  true,  true,  true,  true,  true,
 	false]));
-static LAYOUT_MASK_NUM_SWAPPABLE: usize = 31;
+static LAYOUT_MASK_NUM_SWAPPABLE: usize = 30;
 
 static KEY_FINGERS: KeyMap<Finger> = KeyMap([
 	Finger::Pinky, Finger::Ring, Finger::Middle, Finger::Index, Finger::Index,    Finger::Index, Finger::Index, Finger::Middle, Finger::Ring, Finger::Pinky, Finger::Pinky,
@@ -163,8 +170,10 @@ static KEY_ROWS: KeyMap<Row> = KeyMap([
  * IMPLS *
  * ----- */
 
-impl Layout {
-	pub fn shuffle(&mut self, times: usize) {
+impl Layout
+{
+	pub fn shuffle(&mut self, times: usize)
+	{
 		for _ in 0..times {
 			let (i, j) = Layout::shuffle_position();
 			let Layout(ref mut lower, ref mut upper) = *self;
@@ -173,7 +182,9 @@ impl Layout {
 		}
 	}
 
-	pub fn get_position_map(&self) -> LayoutPosMap {
+	pub fn get_position_map(&self)
+	-> LayoutPosMap
+	{
 		let Layout(ref lower, ref upper) = *self;
 		let mut map = [None; 128];
 		lower.fill_position_map(&mut map);
@@ -182,7 +193,9 @@ impl Layout {
 		LayoutPosMap(map)
 	}
 
-	fn shuffle_position() -> (usize, usize) {
+	fn shuffle_position() 
+	-> (usize, usize)
+	{
 		let LayoutShuffleMask(KeyMap(ref mask)) = LAYOUT_MASK;
 		let mut i = random::<usize>() % LAYOUT_MASK_NUM_SWAPPABLE;
 		let mut j = random::<usize>() % (LAYOUT_MASK_NUM_SWAPPABLE - 1);
@@ -210,15 +223,18 @@ impl Layout {
 	}
 }
 
-impl Layer {
-	fn swap(&mut self, i: usize, j: usize) {
+impl Layer
+{
+	fn swap(&mut self, i: usize, j: usize)
+	{
 		let Layer(KeyMap(ref mut layer)) = *self;
 		let temp = layer[i];
 		layer[i] = layer[j];
 		layer[j] = temp;
 	}
 
-	fn fill_position_map(&self, map: &mut [Option<usize>; 128]) {
+	fn fill_position_map(&self, map: &mut [Option<usize>; 128])
+	{
 		let Layer(KeyMap(ref layer)) = *self;
 		for (i, c) in layer.into_iter().enumerate() {
 			if *c < (128 as char) {
@@ -228,8 +244,11 @@ impl Layer {
 	}
 }
 
-impl LayoutPosMap {
-	pub fn get_key_position(&self, kc: char) -> Option<usize> {
+impl LayoutPosMap
+{
+	pub fn get_key_position(&self, kc: char)
+	-> Option<usize>
+	{
 		let LayoutPosMap(map) = *self;
 		if kc < (128 as char) {
 			map[kc as usize]
@@ -239,15 +258,21 @@ impl LayoutPosMap {
 	}
 }
 
-impl fmt::Display for Layout {
-	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+impl fmt::Display for Layout
+{
+	fn fmt(&self, f: &mut fmt::Formatter)
+	-> fmt::Result
+	{
 		let Layout(ref lower, _) = *self;
 		lower.fmt(f)
 	}
 }
 
-impl fmt::Display for Layer {
-	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+impl fmt::Display for Layer
+{
+	fn fmt(&self, f: &mut fmt::Formatter)
+	-> fmt::Result
+	{
 		let Layer(KeyMap(ref layer)) = *self;
 		write!(f, "{} {} {} {} {} | {} {} {} {} {} {}
 {} {} {} {} {} | {} {} {} {} {} {}
@@ -264,7 +289,9 @@ impl fmt::Display for Layer {
 }
 
 impl KeyPress {
-	pub fn new(kc: char, map: &LayoutPosMap) -> Option<KeyPress> {
+	pub fn new(kc: char, map: &LayoutPosMap)
+	-> Option<KeyPress>
+	{
 		if let Some(pos) = map.get_key_position(kc) {
 			let KeyMap(ref fingers) = KEY_FINGERS;
 			let KeyMap(ref hands) = KEY_HANDS;
