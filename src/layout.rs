@@ -34,7 +34,7 @@ pub struct Layer(KeyMap<char>);
 #[derive(Clone)]
 pub struct Layout(Layer, Layer);
 
-pub struct LayoutPosMap([Option<usize>; 128]);
+pub struct LayoutPosMap([Option<KeyPress>; 128]);
 
 #[derive(Clone)]
 pub struct LayoutShuffleMask(KeyMap<bool>);
@@ -65,6 +65,7 @@ pub enum Row
 	Thumb,
 }
 
+#[derive(Clone, Copy)]
 pub struct KeyPress
 {
 	pub kc:     char,
@@ -166,6 +167,8 @@ static KEY_ROWS: KeyMap<Row> = KeyMap([
 	Row::Bottom, Row::Bottom, Row::Bottom, Row::Bottom, Row::Bottom,    Row::Bottom, Row::Bottom, Row::Bottom, Row::Bottom, Row::Bottom,
 	Row::Thumb]);
 
+pub static KP_NONE: Option<KeyPress> = None;
+
 /* ----- *
  * IMPLS *
  * ----- */
@@ -233,12 +236,21 @@ impl Layer
 		layer[j] = temp;
 	}
 
-	fn fill_position_map(&self, map: &mut [Option<usize>; 128])
+	fn fill_position_map(&self, map: &mut [Option<KeyPress>; 128])
 	{
 		let Layer(KeyMap(ref layer)) = *self;
+		let KeyMap(ref fingers) = KEY_FINGERS;
+		let KeyMap(ref hands) = KEY_HANDS;
+		let KeyMap(ref rows) = KEY_ROWS;
 		for (i, c) in layer.into_iter().enumerate() {
 			if *c < (128 as char) {
-				map[*c as usize] = Some(i);
+				map[*c as usize] = Some(KeyPress {
+					kc: *c,
+					pos: i,
+					finger: fingers[i],
+					hand: hands[i],
+					row: rows[i],
+				});
 			}
 		}
 	}
@@ -247,13 +259,13 @@ impl Layer
 impl LayoutPosMap
 {
 	pub fn get_key_position(&self, kc: char)
-	-> Option<usize>
+	-> &Option<KeyPress>
 	{
-		let LayoutPosMap(map) = *self;
+		let LayoutPosMap(ref map) = *self;
 		if kc < (128 as char) {
-			map[kc as usize]
+			&map[kc as usize]
 		} else {
-			None
+			&KP_NONE
 		}
 	}
 }
@@ -285,20 +297,5 @@ impl fmt::Display for Layer
 			layer[22], layer[23], layer[24], layer[25], layer[26],
 			layer[27], layer[28], layer[29], layer[30], layer[31],
 			layer[32])
-	}
-}
-
-impl KeyPress {
-	pub fn new(kc: char, map: &LayoutPosMap)
-	-> Option<KeyPress>
-	{
-		if let Some(pos) = map.get_key_position(kc) {
-			let KeyMap(ref fingers) = KEY_FINGERS;
-			let KeyMap(ref hands) = KEY_HANDS;
-			let KeyMap(ref rows) = KEY_ROWS;
-			Some(KeyPress { kc: kc, pos: pos, finger: fingers[pos], hand: hands[pos], row: rows[pos] })
-		} else {
-			None
-		}
 	}
 }

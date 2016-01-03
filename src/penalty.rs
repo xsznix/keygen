@@ -12,6 +12,7 @@ use layout::KeyMap;
 use layout::KeyPress;
 use layout::Finger;
 use layout::Row;
+use layout::KP_NONE;
 
 pub struct KeyPenalty<'a>
 {
@@ -38,7 +39,7 @@ impl <'a> fmt::Display for KeyPenaltyResult<'a>
 
 static BASE_PENALTY: KeyMap<f64> = KeyMap([
 	3.0, 1.0, 1.0, 1.0, 3.0,    3.0, 1.0, 1.0, 1.0, 3.0, 4.0,
-	0.5, 0.5, 0.0, 0.0, 1.0,    1.0, 0.0, 0.0, 0.5, 0.5, 1.0,
+	0.5, 0.5, 0.0, 0.0, 1.0,    1.0, 0.0, 0.0, 0.5, 0.5, 2.0,
 	3.0, 2.5, 2.0, 2.0, 3.0,    3.0, 2.0, 2.0, 2.5, 3.0,
 	0.0]);
 
@@ -102,7 +103,8 @@ pub fn init<'a>()
 					   curr.finger == Finger::Pinky  && old.finger == Finger::Ring   ||
 					   curr.finger == Finger::Middle && old.finger == Finger::Ring   ||
 					   curr.finger == Finger::Ring   && old.finger == Finger::Middle ||
-					  (curr.finger == Finger::Index  && old.finger == Finger::Middle &&
+					  (curr.finger == Finger::Index  && (old.finger == Finger::Middle ||
+					                                     old.finger == Finger::Ring) &&
 					   curr.row == Row::Top && old.row == Row::Bottom) {
 						8.0
 					} else { 0.0 }
@@ -242,7 +244,7 @@ pub fn prepare_quartad_list<'a>(
 	let mut range: Range<usize> = 0..0;
 	let mut quartads: HashMap<&str, usize> = HashMap::new();
 	for (i, c) in string.chars().enumerate() {
-		match position_map.get_key_position(c) {
+		match *position_map.get_key_position(c) {
 			Some(_) => {
 				range.end = i + 1;
 				if range.end > 3 && range.start < range.end - 4 {
@@ -299,36 +301,36 @@ fn penalty_for_quartad<'a, 'b>(
 -> f64
 {
 	let len = string.len();
+	let count = count as f64;
 	let mut total = 0.0;
-	let chars: Vec<char> = string.chars().rev().collect();
-	let mut chars_iter = chars.into_iter();
-	let opt_curr = chars_iter.next();
-	let opt_old1 = chars_iter.next();
-	let opt_old2 = chars_iter.next();
-	let opt_old3 = chars_iter.next();
+	let mut chars = string.chars().into_iter().rev();
+	let opt_curr = chars.next();
+	let opt_old1 = chars.next();
+	let opt_old2 = chars.next();
+	let opt_old3 = chars.next();
 
 	let curr = match opt_curr {
-		Some(c) => match KeyPress::new(c, &position_map) {
-			Some(kp) => kp,
-			None => { return 0.0 }
+		Some(c) => match position_map.get_key_position(c) {
+			&Some(ref kp) => kp,
+			&None => { return 0.0 }
 		},
 		None => panic!("unreachable")
 	};
 	let old1 = match opt_old1 {
-		Some(c) => KeyPress::new(c, &position_map),
-		None => None
+		Some(c) => position_map.get_key_position(c),
+		None => &KP_NONE
 	};
 	let old2 = match opt_old2 {
-		Some(c) => KeyPress::new(c, &position_map),
-		None => None
+		Some(c) => position_map.get_key_position(c),
+		None => &KP_NONE
 	};
 	let old3 = match opt_old3 {
-		Some(c) => KeyPress::new(c, &position_map),
-		None => None
+		Some(c) => position_map.get_key_position(c),
+		None => &KP_NONE
 	};
 
 	for (i, penalty) in penalties.into_iter().enumerate() {
-		let p = (*penalty.f)(&curr, &old1, &old2, &old3) * (count as f64);
+		let p = (*penalty.f)(&curr, old1, old2, old3) * count;
 		if p != 0.0 {
 			total += p;
 			result[i].total += p;

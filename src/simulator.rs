@@ -12,7 +12,7 @@ use penalty;
 use annealing;
 
 const MAX_SWAPS_PER_ITERATION: usize = 3;
-const MAX_BEST_LAYOUTS: usize = 10;
+const MAX_BEST_LAYOUTS: usize = 1;
 
 struct BestLayoutsEntry<'a>
 {
@@ -41,10 +41,10 @@ pub fn simulate<'a>(
 	penalties:   &Vec<penalty::KeyPenalty<'a>>)
 {
 	let penalty = penalty::calculate_penalty(&quartads, len, init_layout, penalties);
-	println!("Initial layout:");
-	print_result(init_layout, &penalty);
+	// println!("Initial layout:");
+	// print_result(init_layout, &penalty);
 
-	// Keep track of the 10 best layouts we've encountered.
+	// Keep track of the best layouts we've encountered.
 	let mut best_layouts: LinkedList<BestLayoutsEntry> = LinkedList::new();
 
 	let mut accepted_layout = init_layout.clone();
@@ -62,7 +62,7 @@ pub fn simulate<'a>(
 		// Probabilistically accept worse transitions; always accept better
 		// transitions.
 		if annealing::accept_transition(scaled_penalty - accepted_penalty, i) {
-			println!("Iteration {} accepted with penalty {}", i, scaled_penalty);
+			// println!("Iteration {} accepted with penalty {}", i, scaled_penalty);
 
 			accepted_layout = curr_layout_copy.clone();
 			accepted_penalty = scaled_penalty;
@@ -105,13 +105,6 @@ pub fn simulate<'a>(
 		}
 	}
 
-	// Print out ten best layouts.
-	println!("====================");
-	println!("SIMULATION FINISHED.");
-	println!("====================");
-	println!("");
-	println!("Top layouts:");
-
 	for entry in best_layouts.into_iter() {
 		let layout = entry.layout;
 		let penalty = (entry.total_penalty, entry.scaled_penalty, entry.penalties);
@@ -136,7 +129,7 @@ pub fn print_result<'a>(
 				Some(c) => c,
 				None => Ordering::Equal
 			});
-		for key in high_keys.iter().take(3) {
+		for key in high_keys.iter().take(5) {
 			let (k, v) = *key;
 			print!(" {}: {};", k, v);
 		}

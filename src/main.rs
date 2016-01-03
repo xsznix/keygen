@@ -27,34 +27,41 @@ fn main()
 			let quartads = penalty::prepare_quartad_list(&s[..], &init_pos_map);
 			let len = s.len();
 
-			// Comment out the following...
-			let penalty = penalty::calculate_penalty(&quartads, len, &layout::QWERTY_LAYOUT, &penalties);
-			println!("Reference: QWERTY");
-			simulator::print_result(&layout::QWERTY_LAYOUT, &penalty);
-			println!("");
+			// // Comment out the following...
+			// let penalty = penalty::calculate_penalty(&quartads, len, &layout::QWERTY_LAYOUT, &penalties);
+			// println!("Reference: QWERTY");
+			// simulator::print_result(&layout::QWERTY_LAYOUT, &penalty);
+			// println!("");
 
-			let penalty = penalty::calculate_penalty(&quartads, len, &layout::DVORAK_LAYOUT, &penalties);
-			println!("Reference: DVORAK");
-			simulator::print_result(&layout::DVORAK_LAYOUT, &penalty);
-			println!("");
+			// let penalty = penalty::calculate_penalty(&quartads, len, &layout::DVORAK_LAYOUT, &penalties);
+			// println!("Reference: DVORAK");
+			// simulator::print_result(&layout::DVORAK_LAYOUT, &penalty);
+			// println!("");
 
-			let penalty = penalty::calculate_penalty(&quartads, len, &layout::COLEMAK_LAYOUT, &penalties);
-			println!("Reference: COLEMAK");
-			simulator::print_result(&layout::COLEMAK_LAYOUT, &penalty);
-			println!("");
+			// let penalty = penalty::calculate_penalty(&quartads, len, &layout::COLEMAK_LAYOUT, &penalties);
+			// println!("Reference: COLEMAK");
+			// simulator::print_result(&layout::COLEMAK_LAYOUT, &penalty);
+			// println!("");
 
-			let penalty = penalty::calculate_penalty(&quartads, len, &layout::QGMLWY_LAYOUT, &penalties);
-			println!("Reference: QGMLWY");
-			simulator::print_result(&layout::QGMLWY_LAYOUT, &penalty);
-			println!("");
+			// let penalty = penalty::calculate_penalty(&quartads, len, &layout::QGMLWY_LAYOUT, &penalties);
+			// println!("Reference: QGMLWY");
+			// simulator::print_result(&layout::QGMLWY_LAYOUT, &penalty);
+			// println!("");
 
-			let penalty = penalty::calculate_penalty(&quartads, len, &layout::WORKMAN_LAYOUT, &penalties);
-			println!("Reference: WORKMAN");
-			simulator::print_result(&layout::WORKMAN_LAYOUT, &penalty);
-			println!("");
-			// ...to skip the reference calculations.
+			// let penalty = penalty::calculate_penalty(&quartads, len, &layout::WORKMAN_LAYOUT, &penalties);
+			// println!("Reference: WORKMAN");
+			// simulator::print_result(&layout::WORKMAN_LAYOUT, &penalty);
+			// println!("");
 
-			simulator::simulate(&quartads, len, &layout::INIT_LAYOUT, &penalties);
+
+			// let penalty = penalty::calculate_penalty(&quartads, len, &layout::INIT_LAYOUT, &penalties);
+			// println!("Reference: INITIAL");
+			// simulator::print_result(&layout::INIT_LAYOUT, &penalty);
+			// // ...to skip the reference calculations.
+
+			for _ in 0..10000 {
+				simulator::simulate(&quartads, len, &layout::INIT_LAYOUT, &penalties);
+			}
 		} else {
 			panic!("Could not open corpus.");
 		}
