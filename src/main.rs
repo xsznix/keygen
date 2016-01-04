@@ -53,6 +53,10 @@ fn main()
 			// simulator::print_result(&layout::WORKMAN_LAYOUT, &penalty);
 			// println!("");
 
+			// let penalty = penalty::calculate_penalty(&quartads, len, &layout::MALTRON_LAYOUT, &penalties);
+			// println!("Reference: MALTRON");
+			// simulator::print_result(&layout::MALTRON_LAYOUT, &penalty);
+			// println!("");
 
 			// let penalty = penalty::calculate_penalty(&quartads, len, &layout::INIT_LAYOUT, &penalties);
 			// println!("Reference: INITIAL");

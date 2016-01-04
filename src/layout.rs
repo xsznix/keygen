@@ -144,6 +144,17 @@ pub static WORKMAN_LAYOUT: Layout = Layout(
 	              'Z', 'X', 'M', 'C', 'V',   'K', 'L', ',', '.', '/',
 	              '\0'])));
 
+#[allow(dead_code)]
+pub static MALTRON_LAYOUT: Layout = Layout(
+	Layer(KeyMap(['q', 'p', 'y', 'c', 'b',   'v', 'm', 'u', 'z', 'l', '=',
+	              'a', 'n', 'i', 's', 'f',   'd', 't', 'h', 'o', 'r', '\'',
+	              ',', '.', 'j', 'g', '/',   ';', 'w', 'k', '-', 'x',
+	              'e'])),
+	Layer(KeyMap(['Q', 'P', 'Y', 'C', 'B',   'V', 'M', 'U', 'Z', 'L', '+',
+	              'A', 'N', 'I', 'S', 'F',   'D', 'T', 'H', 'O', 'R', '"',
+	              '<', '>', 'J', 'G', '?',   ':', 'W', 'K', '_', 'X',
+	              'E'])));
+
 static LAYOUT_MASK: LayoutShuffleMask = LayoutShuffleMask(KeyMap([
 	true,  true,  true,  true,  true,  true,  true,  true,  true,  true,  false,
 	true,  true,  true,  true,  true,  true,  true,  true,  true,  true,  false,
