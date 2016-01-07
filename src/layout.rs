@@ -73,6 +73,7 @@ pub struct KeyPress
 	pub finger: Finger,
 	pub hand:   Hand,
 	pub row:    Row,
+	pub center: bool,
 }
 
 /* ------- *
@@ -177,6 +178,11 @@ static KEY_ROWS: KeyMap<Row> = KeyMap([
 	Row::Home,   Row::Home,   Row::Home,   Row::Home,   Row::Home,      Row::Home,   Row::Home,   Row::Home,   Row::Home,   Row::Home,   Row::Home,
 	Row::Bottom, Row::Bottom, Row::Bottom, Row::Bottom, Row::Bottom,    Row::Bottom, Row::Bottom, Row::Bottom, Row::Bottom, Row::Bottom,
 	Row::Thumb]);
+static KEY_CENTER_COLUMN: KeyMap<bool> = KeyMap([
+	false, false, false, false, true,    true, false, false, false, false, false,
+	false, false, false, false, true,    true, false, false, false, false, false,
+	false, false, false, false, true,    true, false, false, false, false,
+	false]);
 
 pub static KP_NONE: Option<KeyPress> = None;
 
@@ -253,6 +259,7 @@ impl Layer
 		let KeyMap(ref fingers) = KEY_FINGERS;
 		let KeyMap(ref hands) = KEY_HANDS;
 		let KeyMap(ref rows) = KEY_ROWS;
+		let KeyMap(ref centers) = KEY_CENTER_COLUMN;
 		for (i, c) in layer.into_iter().enumerate() {
 			if *c < (128 as char) {
 				map[*c as usize] = Some(KeyPress {
@@ -261,6 +268,7 @@ impl Layer
 					finger: fingers[i],
 					hand: hands[i],
 					row: rows[i],
+					center: centers[i],
 				});
 			}
 		}

@@ -59,16 +59,35 @@ pub fn init<'a>()
 	});
 
 	// Penalise 5 points for using the same finger twice on different keys.
+	// An extra 5 points for using the centre column.
 	penalties.push(KeyPenalty {
 		name: "same finger",
 		keys_compared: 2,
 		f: Box::new(|curr, old, _, _| {
 			if let Some(ref old) = *old {
 				if curr.hand == old.hand && curr.finger == old.finger && curr.pos != old.pos {
-					5.0
+					5.0 + if curr.center { 5.0 } else { 0.0 }
+					    + if old.center  { 5.0 } else { 0.0 }
 				} else { 0.0 }
 			} else { 0.0 }
 		})
+	});
+
+	// Penalise 1 point for jumping from top to bottom row or from bottom to
+	// top row on the same hand.
+	penalties.push(KeyPenalty {
+		name: "long jump hand",
+		keys_compared: 2,
+		f: Box::new(|curr, old, _, _| {
+			if let Some(ref old) = *old {
+				if curr.hand == old.hand {
+					if curr.row == Row::Top && old.row == Row::Bottom ||
+					   curr.row == Row::Bottom && old.row == Row::Top {
+						1.0
+					} else { 0.0 }
+				} else { 0.0 }
+			} else { 0.0 }
+		}),
 	});
 
 	// Penalise 10 points for jumping from top to bottom row or from bottom to
@@ -138,7 +157,8 @@ pub fn init<'a>()
 	});
 
 	// Penalise 10 points for reversing a roll at the end of the hand, i.e.
-	// using the ring, pinky, then middle finger of the same hand.
+	// using the ring, pinky, then middle finger of the same hand, or the
+	// middle, pinky, then ring of the same hand.
 	penalties.push(KeyPenalty {
 		name: "roll reversal",
 		keys_compared: 3,
@@ -146,7 +166,8 @@ pub fn init<'a>()
 			if let Some(ref old1) = *old1 {
 				if let Some(ref old2) = *old2 {
 					if curr.hand == old1.hand && old1.hand == old2.hand {
-						if curr.finger == Finger::Middle && old1.finger == Finger::Pinky && old2.finger == Finger::Ring {
+						if (curr.finger == Finger::Middle && old1.finger == Finger::Pinky && old2.finger == Finger::Ring) ||
+						    curr.finger == Finger::Ring && old1.finger == Finger::Pinky && old2.finger == Finger::Middle {
 							10.0
 						} else { 0.0 }
 					} else { 0.0 }
@@ -204,7 +225,7 @@ pub fn init<'a>()
 					       (curr.finger == Finger::Middle ||
 					        curr.finger == Finger::Ring ||
 					        curr.finger == Finger::Pinky) {
-						0.5
+						0.125
 					} else { 0.0 }
 				} else { 0.0 }
 			} else { 0.0 }
@@ -226,7 +247,7 @@ pub fn init<'a>()
 					       (curr.finger == Finger::Middle ||
 					        curr.finger == Finger::Index) ||
 					   old1.finger == Finger::Middle && curr.finger == Finger::Index {
-						-0.5
+						-0.125
 					} else { 0.0 }
 				} else { 0.0 }
 			} else { 0.0 }

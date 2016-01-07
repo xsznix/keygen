@@ -63,7 +63,7 @@ fn main()
 			// simulator::print_result(&layout::INIT_LAYOUT, &penalty);
 			// // ...to skip the reference calculations.
 
-			for _ in 0..10000 {
+			loop {
 				simulator::simulate(&quartads, len, &layout::INIT_LAYOUT, &penalties);
 			}
 		} else {
