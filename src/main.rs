@@ -5,69 +5,147 @@ mod penalty;
 mod annealing;
 mod simulator;
 
+extern crate getopts;
+
 use std::env;
 use std::fs::File;
 use std::io::Read;
+use getopts::Options;
 
 fn main()
 {
-	let penalties = penalty::init();
-	if let Some(test_str) = env::args().nth(1) {
-		if let Ok(mut f) = File::open(test_str) {
-			let mut s = String::new();
-			match f.read_to_string(&mut s) {
-				Err(e) => {
-					println!("Error: {}", e);
-					panic!("could not read corpus");
-				},
-				_ => (),
-			}
+	let mut opts = Options::new();
+	opts.optflag("h", "help", "print this help menu");
+	opts.optflag("d", "debug", "show debug logging");
+	opts.optopt("t", "top", "number of top layouts to print (default: 1)", "TOP_LAYOUTS");
+	opts.optopt("s", "swaps-per-iteration", "maximum number of swaps per iteration (default: 3)", "SWAPS");
 
-			let init_pos_map = layout::INIT_LAYOUT.get_position_map();
-			let quartads = penalty::prepare_quartad_list(&s[..], &init_pos_map);
-			let len = s.len();
+	let args: Vec<String> = env::args().collect();
+	let progname = &args[0];
+	if args.len() < 2 {
+		print_usage(progname, opts);
+		return;
+	}
+	let command = &args[1];
+	let matches = match opts.parse(&args[2..]) {
+		Ok(m) => { m }
+		Err(f) => { panic!(f.to_string()) }
+	};
 
-			// // Comment out the following...
-			// let penalty = penalty::calculate_penalty(&quartads, len, &layout::QWERTY_LAYOUT, &penalties);
-			// println!("Reference: QWERTY");
-			// simulator::print_result(&layout::QWERTY_LAYOUT, &penalty);
-			// println!("");
+	// --help
+	if matches.opt_present("h") {
+		print_usage(progname, opts);
+		return;
+	}
 
-			// let penalty = penalty::calculate_penalty(&quartads, len, &layout::DVORAK_LAYOUT, &penalties);
-			// println!("Reference: DVORAK");
-			// simulator::print_result(&layout::DVORAK_LAYOUT, &penalty);
-			// println!("");
-
-			// let penalty = penalty::calculate_penalty(&quartads, len, &layout::COLEMAK_LAYOUT, &penalties);
-			// println!("Reference: COLEMAK");
-			// simulator::print_result(&layout::COLEMAK_LAYOUT, &penalty);
-			// println!("");
-
-			// let penalty = penalty::calculate_penalty(&quartads, len, &layout::QGMLWY_LAYOUT, &penalties);
-			// println!("Reference: QGMLWY");
-			// simulator::print_result(&layout::QGMLWY_LAYOUT, &penalty);
-			// println!("");
-
-			// let penalty = penalty::calculate_penalty(&quartads, len, &layout::WORKMAN_LAYOUT, &penalties);
-			// println!("Reference: WORKMAN");
-			// simulator::print_result(&layout::WORKMAN_LAYOUT, &penalty);
-			// println!("");
-
-			// let penalty = penalty::calculate_penalty(&quartads, len, &layout::MALTRON_LAYOUT, &penalties);
-			// println!("Reference: MALTRON");
-			// simulator::print_result(&layout::MALTRON_LAYOUT, &penalty);
-			// println!("");
-
-			// let penalty = penalty::calculate_penalty(&quartads, len, &layout::INIT_LAYOUT, &penalties);
-			// println!("Reference: INITIAL");
-			// simulator::print_result(&layout::INIT_LAYOUT, &penalty);
-			// // ...to skip the reference calculations.
-
-			loop {
-				simulator::simulate(&quartads, len, &layout::INIT_LAYOUT, &penalties);
-			}
-		} else {
-			panic!("Could not open corpus.");
+	// Read corpus.
+	let corpus_filename = match matches.free.get(0) {
+		Some(f) => f,
+		None => {
+			print_usage(progname, opts);
+			return;
+		},
+	};
+	let mut f = match File::open(corpus_filename) {
+		Ok(f) => f,
+		Err(e) => {
+			println!("Error: {}", e);
+			panic!("could not read corpus");
+		},
+	};
+	let mut corpus = String::new();
+	match f.read_to_string(&mut corpus) {
+		Ok(_) => (),
+		Err(e) => {
+			println!("Error: {}", e);
+			panic!("could not read corpus");
 		}
+	};
+
+	// Parse options.
+	let debug = matches.opt_present("d");
+	let top   = numopt(matches.opt_str("t"), 1usize);
+	let swaps = numopt(matches.opt_str("s"), 3usize);
+
+	match command.as_ref() {
+		"run" => run(&corpus[..], debug, top, swaps),
+		"run-ref" => run_ref(&corpus[..]),
+		_ => print_usage(progname, opts),
+	};
+}
+
+fn run(s: &str, debug: bool, top: usize, swaps: usize)
+{
+	let penalties = penalty::init();
+	let init_pos_map = layout::INIT_LAYOUT.get_position_map();
+	let quartads = penalty::prepare_quartad_list(s, &init_pos_map);
+	let len = s.len();
+
+	loop {
+		simulator::simulate(&quartads, len, &layout::INIT_LAYOUT, &penalties, debug, top, swaps);
+	}
+}
+
+fn run_ref(s: &str)
+{
+	let penalties = penalty::init();
+	let init_pos_map = layout::INIT_LAYOUT.get_position_map();
+	let quartads = penalty::prepare_quartad_list(s, &init_pos_map);
+	let len = s.len();
+
+	let penalty = penalty::calculate_penalty(&quartads, len, &layout::QWERTY_LAYOUT, &penalties);
+	println!("Reference: QWERTY");
+	simulator::print_result(&layout::QWERTY_LAYOUT, &penalty);
+	println!("");
+
+	let penalty = penalty::calculate_penalty(&quartads, len, &layout::DVORAK_LAYOUT, &penalties);
+	println!("Reference: DVORAK");
+	simulator::print_result(&layout::DVORAK_LAYOUT, &penalty);
+	println!("");
+
+	let penalty = penalty::calculate_penalty(&quartads, len, &layout::COLEMAK_LAYOUT, &penalties);
+	println!("Reference: COLEMAK");
+	simulator::print_result(&layout::COLEMAK_LAYOUT, &penalty);
+	println!("");
+
+	let penalty = penalty::calculate_penalty(&quartads, len, &layout::QGMLWY_LAYOUT, &penalties);
+	println!("Reference: QGMLWY");
+	simulator::print_result(&layout::QGMLWY_LAYOUT, &penalty);
+	println!("");
+
+	let penalty = penalty::calculate_penalty(&quartads, len, &layout::WORKMAN_LAYOUT, &penalties);
+	println!("Reference: WORKMAN");
+	simulator::print_result(&layout::WORKMAN_LAYOUT, &penalty);
+	println!("");
+
+	let penalty = penalty::calculate_penalty(&quartads, len, &layout::MALTRON_LAYOUT, &penalties);
+	println!("Reference: MALTRON");
+	simulator::print_result(&layout::MALTRON_LAYOUT, &penalty);
+	println!("");
+
+	let penalty = penalty::calculate_penalty(&quartads, len, &layout::INIT_LAYOUT, &penalties);
+	println!("Reference: INITIAL");
+	simulator::print_result(&layout::INIT_LAYOUT, &penalty);
+}
+
+fn print_usage(progname: &String, opts: Options)
+{
+	let brief = format!("Usage: {} (run|run-ref) <corpus> [OPTIONS]", progname);
+	print!("{}", opts.usage(&brief));
+}
+
+fn numopt<T>(s: Option<String>, default: T)
+-> T
+where T: std::str::FromStr + std::fmt::Display
+{
+	match s {
+		None => default,
+		Some(num) => match num.parse::<T>() {
+			Ok(n) => n,
+			Err(_) => {
+				println!("Error: invalid option value {}. Using default value {}.", num, default);
+				default
+			},
+		},
 	}
 }

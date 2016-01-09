@@ -11,9 +11,6 @@ use layout;
 use penalty;
 use annealing;
 
-const MAX_SWAPS_PER_ITERATION: usize = 3;
-const MAX_BEST_LAYOUTS: usize = 1;
-
 struct BestLayoutsEntry<'a>
 {
 	layout:         layout::Layout,
@@ -38,11 +35,17 @@ pub fn simulate<'a>(
 	quartads:    &penalty::QuartadList<'a>,
 	len:          usize,
 	init_layout: &layout::Layout,
-	penalties:   &Vec<penalty::KeyPenalty<'a>>)
+	penalties:   &Vec<penalty::KeyPenalty<'a>>,
+	debug:        bool,
+	top_layouts:  usize,
+	num_swaps:    usize)
 {
 	let penalty = penalty::calculate_penalty(&quartads, len, init_layout, penalties);
-	// println!("Initial layout:");
-	// print_result(init_layout, &penalty);
+
+	if debug {
+		println!("Initial layout:");
+		print_result(init_layout, &penalty);
+	}
 
 	// Keep track of the best layouts we've encountered.
 	let mut best_layouts: LinkedList<BestLayoutsEntry> = LinkedList::new();
@@ -52,7 +55,7 @@ pub fn simulate<'a>(
 	for i in annealing::get_simulation_range() {
 		// Copy and shuffle this iteration of the layout.
 		let mut curr_layout = accepted_layout.clone();
-		curr_layout.shuffle(random::<usize>() % MAX_SWAPS_PER_ITERATION + 1);
+		curr_layout.shuffle(random::<usize>() % num_swaps + 1);
 
 		// Calculate penalty.
 		let curr_layout_copy = curr_layout.clone();
@@ -62,7 +65,9 @@ pub fn simulate<'a>(
 		// Probabilistically accept worse transitions; always accept better
 		// transitions.
 		if annealing::accept_transition(scaled_penalty - accepted_penalty, i) {
-			// println!("Iteration {} accepted with penalty {}", i, scaled_penalty);
+			if debug {
+				println!("Iteration {} accepted with penalty {}", i, scaled_penalty);
+			}
 
 			accepted_layout = curr_layout_copy.clone();
 			accepted_penalty = scaled_penalty;
@@ -99,7 +104,7 @@ pub fn simulate<'a>(
 			}
 
 			// Limit best layouts list to ten items.
-			while best_layouts.len() > MAX_BEST_LAYOUTS {
+			while best_layouts.len() > top_layouts {
 				best_layouts.pop_back();
 			}
 		}
