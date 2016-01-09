@@ -62,6 +62,31 @@ fn main()
 		}
 	};
 
+	// Read layout, if applicable.
+	let _layout;
+	let layout = match matches.free.get(1) {
+		None => &layout::INIT_LAYOUT,
+		Some(layout_filename) => {
+			let mut f = match File::open(layout_filename) {
+				Ok(f) => f,
+				Err(e) => {
+					println!("Error: {}", e);
+					panic!("could not read layout");
+				}
+			};
+			let mut layout_str = String::new();
+			match f.read_to_string(&mut layout_str) {
+				Ok(_) => (),
+				Err(e) => {
+					println!("Error: {}", e);
+					panic!("could not read layout");
+				}
+			};
+			_layout = layout::Layout::from_string(&layout_str[..]);
+			&_layout
+		},
+	};
+
 	// Parse options.
 	let debug = matches.opt_present("d");
 	let top   = numopt(matches.opt_str("t"), 1usize);
@@ -70,6 +95,7 @@ fn main()
 	match command.as_ref() {
 		"run" => run(&corpus[..], debug, top, swaps),
 		"run-ref" => run_ref(&corpus[..]),
+		"refine" => refine(&corpus[..], layout, debug, top, swaps),
 		_ => print_usage(progname, opts),
 	};
 }
@@ -126,6 +152,16 @@ fn run_ref(s: &str)
 	let penalty = penalty::calculate_penalty(&quartads, len, &layout::INIT_LAYOUT, &penalties);
 	println!("Reference: INITIAL");
 	simulator::print_result(&layout::INIT_LAYOUT, &penalty);
+}
+
+fn refine(s: &str, layout: &layout::Layout, debug: bool, top: usize, swaps: usize)
+{
+	let penalties = penalty::init();
+	let init_pos_map = layout::INIT_LAYOUT.get_position_map();
+	let quartads = penalty::prepare_quartad_list(s, &init_pos_map);
+	let len = s.len();
+
+	simulator::refine(&quartads, len, layout, &penalties, debug, top, swaps);
 }
 
 fn print_usage(progname: &String, opts: Options)

@@ -21,6 +21,7 @@ pub struct KeyPenalty<'a>
 	f:             Box<Fn(&KeyPress, &Option<KeyPress>, &Option<KeyPress>, &Option<KeyPress>) -> f64>,
 }
 
+#[derive(Clone)]
 pub struct KeyPenaltyResult<'a>
 {
 	pub name:  &'a str,

@@ -34,6 +34,13 @@ pub struct Layer(KeyMap<char>);
 #[derive(Clone)]
 pub struct Layout(Layer, Layer);
 
+pub struct LayoutPermutations
+{
+	orig_layout: Layout,
+	swap_idx: Vec<usize>,
+	started: bool,
+}
+
 pub struct LayoutPosMap([Option<KeyPress>; 128]);
 
 #[derive(Clone)]
@@ -161,6 +168,10 @@ static LAYOUT_MASK: LayoutShuffleMask = LayoutShuffleMask(KeyMap([
 	true,  true,  true,  true,  true,  true,  true,  true,  true,  true,  false,
 	true,  true,  true,  true,  true,  true,  true,  true,  true,  true,
 	false]));
+static LAYOUT_MASK_SWAP_OFFSETS: [usize; 30] = [
+	0, 0, 0, 0, 0,    0, 0, 0, 0, 0,
+	1, 1, 1, 1, 1,    1, 1, 1, 1, 1,
+	2, 2, 2, 2, 2,    2, 2, 2, 2, 2];
 static LAYOUT_MASK_NUM_SWAPPABLE: usize = 30;
 
 static KEY_FINGERS: KeyMap<Finger> = KeyMap([
@@ -186,12 +197,33 @@ static KEY_CENTER_COLUMN: KeyMap<bool> = KeyMap([
 
 pub static KP_NONE: Option<KeyPress> = None;
 
+static LAYOUT_FILE_IDXS: KeyMap<usize> = KeyMap([
+	0,  1,  2,  3,  4,     6,  7,  8,  9,  10, 11,
+	13, 14, 15, 16, 17,    19, 20, 21, 22, 23, 24,
+	26, 27, 28, 29, 30,    32, 33, 34, 35, 36, 37]);
+
 /* ----- *
  * IMPLS *
  * ----- */
 
 impl Layout
 {
+	pub fn from_string(s: &str)
+	-> Layout
+	{
+		let s: Vec<char> = s.chars().collect();
+		let mut lower: [char; 33] = ['\0'; 33];
+		let mut upper: [char; 33] = ['\0'; 33];
+		
+		for i in 0..33 {
+			let file_i = LAYOUT_FILE_IDXS.0[i];
+			lower[i] = *s.get(file_i).unwrap_or(&'\0');
+			upper[i] = *s.get(file_i + 39).unwrap_or(&'\0');
+		}
+
+		Layout(Layer(KeyMap(lower)), Layer(KeyMap(upper)))
+	}
+
 	pub fn shuffle(&mut self, times: usize)
 	{
 		for _ in 0..times {
@@ -216,29 +248,14 @@ impl Layout
 	fn shuffle_position() 
 	-> (usize, usize)
 	{
-		let LayoutShuffleMask(KeyMap(ref mask)) = LAYOUT_MASK;
 		let mut i = random::<usize>() % LAYOUT_MASK_NUM_SWAPPABLE;
 		let mut j = random::<usize>() % (LAYOUT_MASK_NUM_SWAPPABLE - 1);
 		if j >= i {
 			j += 1;
 		}
-		// println!("i j = {} {}", i, j);
+		i += LAYOUT_MASK_SWAP_OFFSETS[i];
+		j += LAYOUT_MASK_SWAP_OFFSETS[j];
 
-		let mut k = 0;
-		while k <= i {
-			if mask[k] == false {
-				i += 1;
-			}
-			k += 1;
-		}
-
-		k = 0;
-		while k <= j {
-			if mask[k] == false {
-				j += 1;
-			}
-			k += 1;
-		}
 		(i, j)
 	}
 }
@@ -285,6 +302,75 @@ impl LayoutPosMap
 			&map[kc as usize]
 		} else {
 			&KP_NONE
+		}
+	}
+}
+
+impl LayoutPermutations
+{
+	pub fn new(layout: &Layout, depth: usize)
+	-> LayoutPermutations
+	{
+		let mut swaps = Vec::with_capacity(depth * 2);
+		for _ in 0..(depth * 2) {
+			swaps.push(0);
+		}
+		LayoutPermutations {
+			orig_layout: layout.clone(),
+			swap_idx: swaps,
+			started: false,
+		}
+	}
+}
+
+impl Iterator for LayoutPermutations
+{
+	type Item = Layout;
+
+	fn next(&mut self)
+	-> Option<Layout>
+	{
+		let mut some = false;
+		let mut idx = 0;
+		let mut val = 0;
+
+		if self.started {
+			for (i, e) in self.swap_idx.iter_mut().enumerate() {
+				if *e + 1 < LAYOUT_MASK_NUM_SWAPPABLE - i {
+					*e += 1;
+					some = true;
+					idx = i;
+					val = *e;
+					break;
+				}
+			}
+		} else {
+			self.started = true;
+			some = true;
+			idx = 1;
+			val = 0;
+		}
+
+		if some {
+			for i in 0..idx {
+				self.swap_idx[i] =  val + idx - i;
+			}
+
+			let mut layout = self.orig_layout.clone();
+			let mut i = 0;
+			while i < self.swap_idx.len() {
+				let ref mut lower = ((layout.0).0).0;
+				let ref mut upper = ((layout.1).0).0;
+				let swap_left = self.swap_idx[i] + LAYOUT_MASK_SWAP_OFFSETS[self.swap_idx[i]];
+				let swap_right = self.swap_idx[i + 1] + LAYOUT_MASK_SWAP_OFFSETS[self.swap_idx[i + 1]];
+				lower.swap(swap_left, swap_right);
+				upper.swap(swap_left, swap_right);
+				i += 2;
+			}
+
+			Some(layout)
+		} else {
+			None
 		}
 	}
 }
