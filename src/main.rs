@@ -119,37 +119,37 @@ fn run_ref(s: &str)
 	let quartads = penalty::prepare_quartad_list(s, &init_pos_map);
 	let len = s.len();
 
-	let penalty = penalty::calculate_penalty(&quartads, len, &layout::QWERTY_LAYOUT, &penalties);
+	let penalty = penalty::calculate_penalty(&quartads, len, &layout::QWERTY_LAYOUT, &penalties, true);
 	println!("Reference: QWERTY");
 	simulator::print_result(&layout::QWERTY_LAYOUT, &penalty);
 	println!("");
 
-	let penalty = penalty::calculate_penalty(&quartads, len, &layout::DVORAK_LAYOUT, &penalties);
+	let penalty = penalty::calculate_penalty(&quartads, len, &layout::DVORAK_LAYOUT, &penalties, true);
 	println!("Reference: DVORAK");
 	simulator::print_result(&layout::DVORAK_LAYOUT, &penalty);
 	println!("");
 
-	let penalty = penalty::calculate_penalty(&quartads, len, &layout::COLEMAK_LAYOUT, &penalties);
+	let penalty = penalty::calculate_penalty(&quartads, len, &layout::COLEMAK_LAYOUT, &penalties, true);
 	println!("Reference: COLEMAK");
 	simulator::print_result(&layout::COLEMAK_LAYOUT, &penalty);
 	println!("");
 
-	let penalty = penalty::calculate_penalty(&quartads, len, &layout::QGMLWY_LAYOUT, &penalties);
+	let penalty = penalty::calculate_penalty(&quartads, len, &layout::QGMLWY_LAYOUT, &penalties, true);
 	println!("Reference: QGMLWY");
 	simulator::print_result(&layout::QGMLWY_LAYOUT, &penalty);
 	println!("");
 
-	let penalty = penalty::calculate_penalty(&quartads, len, &layout::WORKMAN_LAYOUT, &penalties);
+	let penalty = penalty::calculate_penalty(&quartads, len, &layout::WORKMAN_LAYOUT, &penalties, true);
 	println!("Reference: WORKMAN");
 	simulator::print_result(&layout::WORKMAN_LAYOUT, &penalty);
 	println!("");
 
-	let penalty = penalty::calculate_penalty(&quartads, len, &layout::MALTRON_LAYOUT, &penalties);
+	let penalty = penalty::calculate_penalty(&quartads, len, &layout::MALTRON_LAYOUT, &penalties, true);
 	println!("Reference: MALTRON");
 	simulator::print_result(&layout::MALTRON_LAYOUT, &penalty);
 	println!("");
 
-	let penalty = penalty::calculate_penalty(&quartads, len, &layout::INIT_LAYOUT, &penalties);
+	let penalty = penalty::calculate_penalty(&quartads, len, &layout::INIT_LAYOUT, &penalties, true);
 	println!("Reference: INITIAL");
 	simulator::print_result(&layout::INIT_LAYOUT, &penalty);
 }

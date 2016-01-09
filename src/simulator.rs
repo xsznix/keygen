@@ -11,20 +11,18 @@ use layout;
 use penalty;
 use annealing;
 
-struct BestLayoutsEntry<'a>
+struct BestLayoutsEntry
 {
-	layout:         layout::Layout,
-	total_penalty:  f64,
-	scaled_penalty: f64,
-	penalties:      Vec<penalty::KeyPenaltyResult<'a>>,
+	layout:  layout::Layout,
+	penalty: f64,
 }
 
-impl <'a> BestLayoutsEntry<'a>
+impl BestLayoutsEntry
 {
 	fn cmp(&self, other: &BestLayoutsEntry)
 	-> Ordering
 	{
-		match self.scaled_penalty.partial_cmp(&other.scaled_penalty) {
+		match self.penalty.partial_cmp(&other.penalty) {
 			Some(ord) => ord,
 			None => Ordering::Equal
 		}
@@ -40,7 +38,7 @@ pub fn simulate<'a>(
 	top_layouts:  usize,
 	num_swaps:    usize)
 {
-	let penalty = penalty::calculate_penalty(&quartads, len, init_layout, penalties);
+	let penalty = penalty::calculate_penalty(&quartads, len, init_layout, penalties, true);
 
 	if debug {
 		println!("Initial layout:");
@@ -59,7 +57,7 @@ pub fn simulate<'a>(
 
 		// Calculate penalty.
 		let curr_layout_copy = curr_layout.clone();
-		let penalty = penalty::calculate_penalty(&quartads, len, &curr_layout, penalties);
+		let penalty = penalty::calculate_penalty(&quartads, len, &curr_layout, penalties, false);
 		let scaled_penalty = penalty.1;
 
 		// Probabilistically accept worse transitions; always accept better
@@ -75,9 +73,7 @@ pub fn simulate<'a>(
 			// Insert this layout into best layouts.
 			let new_entry = BestLayoutsEntry {
 				layout: curr_layout_copy,
-				total_penalty: penalty.0,
-				scaled_penalty: penalty.1,
-				penalties: penalty.2,
+				penalty: penalty.1,
 			};
 			best_layouts = list_insert_ordered(best_layouts, new_entry);
 
@@ -90,7 +86,7 @@ pub fn simulate<'a>(
 
 	for entry in best_layouts.into_iter() {
 		let layout = entry.layout;
-		let penalty = (entry.total_penalty, entry.scaled_penalty, entry.penalties);
+		let penalty = penalty::calculate_penalty(&quartads, len, &layout, penalties, true);
 		println!("");
 		print_result(&layout, &penalty);
 	}
@@ -105,7 +101,7 @@ pub fn refine<'a>(
 	top_layouts:  usize,
 	num_swaps:    usize)
 {
-	let penalty = penalty::calculate_penalty(&quartads, len, init_layout, penalties);
+	let penalty = penalty::calculate_penalty(&quartads, len, init_layout, penalties, true);
 
 	println!("Initial layout:");
 	print_result(init_layout, &penalty);
@@ -118,7 +114,7 @@ pub fn refine<'a>(
 		let mut best_layouts: LinkedList<BestLayoutsEntry> = LinkedList::new();
 		let permutations = layout::LayoutPermutations::new(init_layout, num_swaps);
 		for (i, layout) in permutations.enumerate() {
-			let penalty = penalty::calculate_penalty(&quartads, len, &layout, penalties);
+			let penalty = penalty::calculate_penalty(&quartads, len, &layout, penalties, false);
 
 			if debug {
 				println!("Iteration {}: {}", i, penalty.1);
@@ -127,9 +123,7 @@ pub fn refine<'a>(
 			// Insert this layout into best layouts.
 			let new_entry = BestLayoutsEntry {
 				layout: layout,
-				total_penalty: penalty.0,
-				scaled_penalty: penalty.1,
-				penalties: penalty.2,
+				penalty: penalty.1,
 			};
 			best_layouts = list_insert_ordered(best_layouts, new_entry);
 
@@ -142,18 +136,18 @@ pub fn refine<'a>(
 		// Print the top layouts.
 		for entry in best_layouts.iter() {
 			let ref layout = entry.layout;
-			let penalty = (entry.total_penalty, entry.scaled_penalty, entry.penalties.clone());
+			let penalty = penalty::calculate_penalty(&quartads, len, &layout, penalties, true);
 			println!("");
 			print_result(&layout, &penalty);
 		}
 
 		// Keep going until swapping doesn't get us any more improvements.
 		let best = best_layouts.pop_front().unwrap();
-		if curr_penalty <= best.scaled_penalty {
+		if curr_penalty <= best.penalty {
 			break;
 		} else {
 			curr_layout = best.layout;
-			curr_penalty = best.scaled_penalty;
+			curr_penalty = best.penalty;
 		}
 	}
 
@@ -187,8 +181,8 @@ pub fn print_result<'a>(
 }
 
 // Take ownership of the list and give it back as a hack to make the borrow checker happy :^)
-fn list_insert_ordered<'a>(mut list: LinkedList<BestLayoutsEntry<'a>>, entry: BestLayoutsEntry<'a>)
--> LinkedList<BestLayoutsEntry<'a>>
+fn list_insert_ordered(mut list: LinkedList<BestLayoutsEntry>, entry: BestLayoutsEntry)
+-> LinkedList<BestLayoutsEntry>
 {
 	{
 		// Find where to add our new entry to, since the list is sorted.

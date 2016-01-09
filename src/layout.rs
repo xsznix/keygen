@@ -163,11 +163,11 @@ pub static MALTRON_LAYOUT: Layout = Layout(
 	              '<', '>', 'J', 'G', '?',   ':', 'W', 'K', '_', 'X',
 	              'E'])));
 
-static LAYOUT_MASK: LayoutShuffleMask = LayoutShuffleMask(KeyMap([
-	true,  true,  true,  true,  true,  true,  true,  true,  true,  true,  false,
-	true,  true,  true,  true,  true,  true,  true,  true,  true,  true,  false,
-	true,  true,  true,  true,  true,  true,  true,  true,  true,  true,
-	false]));
+// static LAYOUT_MASK: LayoutShuffleMask = LayoutShuffleMask(KeyMap([
+// 	true,  true,  true,  true,  true,  true,  true,  true,  true,  true,  false,
+// 	true,  true,  true,  true,  true,  true,  true,  true,  true,  true,  false,
+// 	true,  true,  true,  true,  true,  true,  true,  true,  true,  true,
+// 	false]));
 static LAYOUT_MASK_SWAP_OFFSETS: [usize; 30] = [
 	0, 0, 0, 0, 0,    0, 0, 0, 0, 0,
 	1, 1, 1, 1, 1,    1, 1, 1, 1, 1,
