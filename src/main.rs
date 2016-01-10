@@ -93,14 +93,14 @@ fn main()
 	let swaps = numopt(matches.opt_str("s"), 3usize);
 
 	match command.as_ref() {
-		"run" => run(&corpus[..], debug, top, swaps),
+		"run" => run(&corpus[..], layout, debug, top, swaps),
 		"run-ref" => run_ref(&corpus[..]),
 		"refine" => refine(&corpus[..], layout, debug, top, swaps),
 		_ => print_usage(progname, opts),
 	};
 }
 
-fn run(s: &str, debug: bool, top: usize, swaps: usize)
+fn run(s: &str, layout: &layout::Layout, debug: bool, top: usize, swaps: usize)
 {
 	let penalties = penalty::init();
 	let init_pos_map = layout::INIT_LAYOUT.get_position_map();
@@ -108,7 +108,7 @@ fn run(s: &str, debug: bool, top: usize, swaps: usize)
 	let len = s.len();
 
 	loop {
-		simulator::simulate(&quartads, len, &layout::INIT_LAYOUT, &penalties, debug, top, swaps);
+		simulator::simulate(&quartads, len, layout, &penalties, debug, top, swaps);
 	}
 }
 
@@ -147,6 +147,21 @@ fn run_ref(s: &str)
 	let penalty = penalty::calculate_penalty(&quartads, len, &layout::MALTRON_LAYOUT, &penalties, true);
 	println!("Reference: MALTRON");
 	simulator::print_result(&layout::MALTRON_LAYOUT, &penalty);
+	println!("");
+
+	let penalty = penalty::calculate_penalty(&quartads, len, &layout::MTGAP_LAYOUT, &penalties, true);
+	println!("Reference: MTGAP");
+	simulator::print_result(&layout::MTGAP_LAYOUT, &penalty);
+	println!("");
+
+	let penalty = penalty::calculate_penalty(&quartads, len, &layout::CAPEWELL_LAYOUT, &penalties, true);
+	println!("Reference: CAPEWELL");
+	simulator::print_result(&layout::CAPEWELL_LAYOUT, &penalty);
+	println!("");
+
+	let penalty = penalty::calculate_penalty(&quartads, len, &layout::ARENSITO_LAYOUT, &penalties, true);
+	println!("Reference: ARENSITO");
+	simulator::print_result(&layout::ARENSITO_LAYOUT, &penalty);
 	println!("");
 
 	let penalty = penalty::calculate_penalty(&quartads, len, &layout::INIT_LAYOUT, &penalties, true);

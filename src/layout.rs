@@ -97,7 +97,6 @@ pub static INIT_LAYOUT: Layout = Layout(
 	              'J', 'K', 'V', 'C', ':',   'X', 'M', 'B', '<', '>',
 	              'E'])));
 
-#[allow(dead_code)]
 pub static QWERTY_LAYOUT: Layout = Layout(
 	Layer(KeyMap(['q', 'w', 'e', 'r', 't',   'y', 'u', 'i', 'o', 'p', '-',
 	              'a', 's', 'd', 'f', 'g',   'h', 'j', 'k', 'l', ';', '\'',
@@ -108,7 +107,6 @@ pub static QWERTY_LAYOUT: Layout = Layout(
 	              'Z', 'X', 'C', 'V', 'B',   'N', 'M', '<', '>', '?',
 	              '\0'])));
 
-#[allow(dead_code)]
 pub static DVORAK_LAYOUT: Layout = Layout(
 	Layer(KeyMap(['\'', ',', '.', 'p', 'y',   'f', 'g', 'c', 'r', 'l', '/',
 	              'a', 'o', 'e', 'u', 'i',   'd', 'h', 't', 'n', 's', '-',
@@ -119,7 +117,6 @@ pub static DVORAK_LAYOUT: Layout = Layout(
 	              ':', 'Q', 'J', 'K', 'X',   'B', 'M', 'W', 'V', 'Z',
 	              '\0'])));
 
-#[allow(dead_code)]
 pub static COLEMAK_LAYOUT: Layout = Layout(
 	Layer(KeyMap(['q', 'w', 'f', 'p', 'g',   'j', 'l', 'u', 'y', ';', '-',
 	              'a', 'r', 's', 't', 'd',   'h', 'n', 'e', 'i', 'o', '\'',
@@ -127,32 +124,29 @@ pub static COLEMAK_LAYOUT: Layout = Layout(
 	              '\0'])),
 	Layer(KeyMap(['Q', 'W', 'F', 'P', 'G',   'J', 'L', 'U', 'Y', ':', '_',
 	              'A', 'R', 'S', 'T', 'D',   'H', 'N', 'E', 'I', 'O', '"',
-	              'Z', 'X', 'C', 'V', 'B',   'K', 'M', '<', '>', 'Z',
+	              'Z', 'X', 'C', 'V', 'B',   'K', 'M', '<', '>', '?',
 	              '\0'])));
 
-#[allow(dead_code)]
 pub static QGMLWY_LAYOUT: Layout = Layout(
 	Layer(KeyMap(['q', 'g', 'm', 'l', 'w',   'y', 'f', 'u', 'b', ';', '-',
 	              'd', 's', 't', 'n', 'r',   'i', 'a', 'e', 'o', 'h', '\'',
 	              'z', 'x', 'c', 'v', 'j',   'k', 'p', ',', '.', '/',
 	              '\0'])),
-	Layer(KeyMap(['Q', 'G', 'M', 'L', 'W',   'Y', 'F', 'U', 'B', ';', '-',
-	              'D', 'S', 'T', 'N', 'R',   'I', 'A', 'E', 'O', 'H', '\'',
-	              'Z', 'X', 'C', 'V', 'J',   'K', 'P', ',', '.', '/',
+	Layer(KeyMap(['Q', 'G', 'M', 'L', 'W',   'Y', 'F', 'U', 'B', ':', '_',
+	              'D', 'S', 'T', 'N', 'R',   'I', 'A', 'E', 'O', 'H', '"',
+	              'Z', 'X', 'C', 'V', 'J',   'K', 'P', '<', '>', '?',
 	              '\0'])));
 
-#[allow(dead_code)]
 pub static WORKMAN_LAYOUT: Layout = Layout(
 	Layer(KeyMap(['q', 'd', 'r', 'w', 'b',   'j', 'f', 'u', 'p', ';', '-',
 	              'a', 's', 'h', 't', 'g',   'y', 'n', 'e', 'o', 'i', '\'',
 	              'z', 'x', 'm', 'c', 'v',   'k', 'l', ',', '.', '/',
 	              '\0'])),
-	Layer(KeyMap(['Q', 'D', 'R', 'W', 'B',   'J', 'F', 'U', 'P', ';', '-',
-	              'A', 'S', 'H', 'T', 'G',   'Y', 'N', 'E', 'O', 'I', '\'',
-	              'Z', 'X', 'M', 'C', 'V',   'K', 'L', ',', '.', '/',
+	Layer(KeyMap(['Q', 'D', 'R', 'W', 'B',   'J', 'F', 'U', 'P', ':', '_',
+	              'A', 'S', 'H', 'T', 'G',   'Y', 'N', 'E', 'O', 'I', '"',
+	              'Z', 'X', 'M', 'C', 'V',   'K', 'L', '<', '>', '?',
 	              '\0'])));
 
-#[allow(dead_code)]
 pub static MALTRON_LAYOUT: Layout = Layout(
 	Layer(KeyMap(['q', 'p', 'y', 'c', 'b',   'v', 'm', 'u', 'z', 'l', '=',
 	              'a', 'n', 'i', 's', 'f',   'd', 't', 'h', 'o', 'r', '\'',
@@ -162,6 +156,36 @@ pub static MALTRON_LAYOUT: Layout = Layout(
 	              'A', 'N', 'I', 'S', 'F',   'D', 'T', 'H', 'O', 'R', '"',
 	              '<', '>', 'J', 'G', '?',   ':', 'W', 'K', '_', 'X',
 	              'E'])));
+
+pub static MTGAP_LAYOUT: Layout = Layout(
+	Layer(KeyMap(['y', 'p', 'o', 'u', '-',   'b', 'd', 'l', 'c', 'k', 'j',
+	              'i', 'n', 'e', 'a', ',',   'm', 'h', 't', 's', 'r', 'v',
+	              '(', '"', '\'', '.', '_',   ')', 'f', 'w', 'g', 'x',
+	              'z'])),
+	Layer(KeyMap(['Y', 'P', 'O', 'U', ':',   'B', 'D', 'L', 'C', 'K', 'J',
+	              'I', 'N', 'E', 'A', ';',   'M', 'H', 'T', 'S', 'R', 'V',
+	              '&', '?', '*', '=', '<',   '>', 'F', 'W', 'G', 'X',
+	              'Z'])));
+
+pub static CAPEWELL_LAYOUT: Layout = Layout(
+	Layer(KeyMap(['.', 'y', 'w', 'd', 'f',   'j', 'p', 'l', 'u', 'q', '/',
+	              'a', 'e', 'r', 's', 'g',   'b', 't', 'n', 'i', 'o', '-',
+	              'x', 'z', 'c', 'v', ';',   'k', 'w', 'h', ',', '\'',
+	              '\0'])),
+	Layer(KeyMap(['>', 'Y', 'W', 'D', 'F',   'J', 'P', 'L', 'U', 'Q', '?',
+	              'A', 'E', 'R', 'S', 'G',   'B', 'T', 'N', 'I', 'O', '_',
+	              'X', 'Z', 'C', 'V', ':',   'K', 'W', 'H', '<', '"',
+	              '\0'])));
+
+pub static ARENSITO_LAYOUT: Layout = Layout(
+	Layer(KeyMap(['q', 'l', ',', 'p', '\0',  '\0', 'f', 'u', 'd', 'k', '\0',
+	              'a', 'r', 'e', 'n', 'b',   'g', 's', 'i', 't', 'o', '\0',
+	              'z', 'w', '.', 'h', 'j',   'v', 'c', 'y', 'm', 'x',
+	              '\0'])),
+	Layer(KeyMap(['Q', 'L', '<', 'P', '\0',  '\0', 'F', 'U', 'D', 'K', '\0',
+	              'A', 'R', 'E', 'N', 'B',   'G', 'S', 'I', 'T', 'O', '\0',
+	              'Z', 'W', '>', 'H', 'J',   'V', 'C', 'Y', 'M', 'X',
+	              '\0'])));
 
 // static LAYOUT_MASK: LayoutShuffleMask = LayoutShuffleMask(KeyMap([
 // 	true,  true,  true,  true,  true,  true,  true,  true,  true,  true,  false,
