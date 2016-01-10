@@ -189,14 +189,14 @@ pub static ARENSITO_LAYOUT: Layout = Layout(
 
 // static LAYOUT_MASK: LayoutShuffleMask = LayoutShuffleMask(KeyMap([
 // 	true,  true,  true,  true,  true,  true,  true,  true,  true,  true,  false,
-// 	true,  true,  true,  true,  true,  true,  true,  true,  true,  true,  false,
+// 	true,  true,  true,  true,  true,  true,  true,  true,  true,  true,  true,
 // 	true,  true,  true,  true,  true,  true,  true,  true,  true,  true,
 // 	false]));
-static LAYOUT_MASK_SWAP_OFFSETS: [usize; 30] = [
+static LAYOUT_MASK_SWAP_OFFSETS: [usize; 31] = [
 	0, 0, 0, 0, 0,    0, 0, 0, 0, 0,
-	1, 1, 1, 1, 1,    1, 1, 1, 1, 1,
-	2, 2, 2, 2, 2,    2, 2, 2, 2, 2];
-static LAYOUT_MASK_NUM_SWAPPABLE: usize = 30;
+	1, 1, 1, 1, 1,    1, 1, 1, 1, 1, 1,
+	1, 1, 1, 1, 1,    1, 1, 1, 1, 1];
+static LAYOUT_MASK_NUM_SWAPPABLE: usize = 31;
 
 static KEY_FINGERS: KeyMap<Finger> = KeyMap([
 	Finger::Pinky, Finger::Ring, Finger::Middle, Finger::Index, Finger::Index,    Finger::Index, Finger::Index, Finger::Middle, Finger::Ring, Finger::Pinky, Finger::Pinky,
