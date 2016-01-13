@@ -39,7 +39,7 @@ impl <'a> fmt::Display for KeyPenaltyResult<'a>
 
 static BASE_PENALTY: KeyMap<f64> = KeyMap([
 	3.0, 1.0, 1.0, 1.0, 3.0,    4.0, 1.5, 1.0, 1.0, 3.5, 4.0,
-	0.5, 0.0, 0.0, 0.0, 1.5,    1.5, 0.0, 0.0, 0.0, 0.5, 3.0,
+	0.5, 0.5, 0.0, 0.0, 1.5,    1.5, 0.0, 0.0, 0.5, 0.5, 3.0,
 	3.5, 2.5, 2.0, 2.0, 4.0,    3.0, 2.0, 2.0, 2.5, 3.0,
 	0.0]);
 
@@ -307,7 +307,7 @@ fn penalize<'a, 'b>(
 		// 5: Pinky/ring twist.
 		let diff: isize = (curr.pos as isize) - (old1.pos as isize);
 		let sum = curr.pos + old1.pos;
-		if diff.abs() == 10 && (sum == 30 || sum == 34) {
+		if diff.abs() == 10 && (sum == 28 || sum == 34) {
 			let penalty = 8.0 * count;
 			if detailed {
 				*result[5].high_keys.entry(slice2).or_insert(0.0) += penalty;
