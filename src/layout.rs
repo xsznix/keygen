@@ -88,14 +88,14 @@ pub struct KeyPress
  * ------- */
 
 pub static INIT_LAYOUT: Layout = Layout(
-	Layer(KeyMap(['q', 'u', 'p', 'g', '/',   'z', 'l', 'w', 'y', '\'', '=',
-	              'a', 'r', 'n', 's', 'd',   'f', 'h', 't', 'i', 'o',  '-',
-	              'j', 'k', 'v', 'c', ';',   'x', 'm', 'b', ',', '.',
-	              'e'])),
-	Layer(KeyMap(['Q', 'U', 'P', 'G', '?',   'Z', 'L', 'W', 'Y', '"', '+',
-	              'A', 'R', 'N', 'S', 'D',   'F', 'H', 'T', 'I', 'O', '_',
-	              'J', 'K', 'V', 'C', ':',   'X', 'M', 'B', '<', '>',
-	              'E'])));
+	Layer(KeyMap(['/', 'w', 'y', 'g', 'b',   'j', 'l', ',', 'u', 'q', '-',
+	              's', 'r', 'e', 't', 'd',   'h', 'n', 'a', 'i', 'o', '\'',
+	              'c', 'v', 'f', 'p', 'k',   'z', 'm', '.', ';', 'x',
+	              '\0'])),
+	Layer(KeyMap(['?', 'W', 'Y', 'G', 'B',   'J', 'L', '<', 'U', 'Q', '_',
+	              'S', 'R', 'E', 'T', 'D',   'H', 'N', 'A', 'I', 'O', '"',
+	              'C', 'V', 'F', 'P', 'K',   'Z', 'M', '>', ':', 'X',
+	              '\0'])));
 
 pub static QWERTY_LAYOUT: Layout = Layout(
 	Layer(KeyMap(['q', 'w', 'e', 'r', 't',   'y', 'u', 'i', 'o', 'p', '-',
@@ -188,15 +188,15 @@ pub static ARENSITO_LAYOUT: Layout = Layout(
 	              '\0'])));
 
 // static LAYOUT_MASK: LayoutShuffleMask = LayoutShuffleMask(KeyMap([
-// 	true,  true,  true,  true,  true,  true,  true,  true,  true,  true,  false,
-// 	true,  true,  true,  true,  true,  true,  true,  true,  true,  true,  true,
-// 	true,  true,  true,  true,  true,  true,  true,  true,  true,  true,
+// 	true,  true,  true,  true,  true,  true,  true,  false,  true,   true,  false,
+// 	true,  true,  true,  true,  true,  true,  true,  true,   true,   true,  false,
+// 	true,  true,  true,  true,  true,  true,  true,  false,  false,  true,
 // 	false]));
-static LAYOUT_MASK_SWAP_OFFSETS: [usize; 31] = [
+static LAYOUT_MASK_SWAP_OFFSETS: [usize; 30] = [
 	0, 0, 0, 0, 0,    0, 0, 0, 0, 0,
-	1, 1, 1, 1, 1,    1, 1, 1, 1, 1, 1,
-	1, 1, 1, 1, 1,    1, 1, 1, 1, 1];
-static LAYOUT_MASK_NUM_SWAPPABLE: usize = 31;
+	1, 1, 1, 1, 1,    1, 1, 1, 1, 1,
+	2, 2, 2, 2, 2,    2, 2, 2, 2, 2];
+static LAYOUT_MASK_NUM_SWAPPABLE: usize = 30;
 
 static KEY_FINGERS: KeyMap<Finger> = KeyMap([
 	Finger::Pinky, Finger::Ring, Finger::Middle, Finger::Index, Finger::Index,    Finger::Index, Finger::Index, Finger::Middle, Finger::Ring, Finger::Pinky, Finger::Pinky,
