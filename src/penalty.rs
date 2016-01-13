@@ -307,7 +307,7 @@ fn penalize<'a, 'b>(
 		// 5: Pinky/ring twist.
 		let diff: isize = (curr.pos as isize) - (old1.pos as isize);
 		let sum = curr.pos + old1.pos;
-		if diff == 10 && (sum == 30 || sum == 34) {
+		if diff.abs() == 10 && (sum == 30 || sum == 34) {
 			let penalty = 8.0 * count;
 			if detailed {
 				*result[5].high_keys.entry(slice2).or_insert(0.0) += penalty;
@@ -317,7 +317,7 @@ fn penalize<'a, 'b>(
 		}
 
 		// 7: Left crunch.
-		if curr.hand == Hand::Left && old1.hand == Hand::Left && sum >= 34 && sum <= 38 && diff == 10 {
+		if curr.hand == Hand::Left && old1.hand == Hand::Left && sum >= 34 && sum <= 38 && (diff.abs() == 10) {
 			let penalty = 4.0 * count;
 			if detailed {
 				*result[7].high_keys.entry(slice2).or_insert(0.0) += penalty;
