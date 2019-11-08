@@ -14,7 +14,7 @@ use self::rand::Rng;
 const T0: f64   = 1.5;
 const K:  f64   = 10.0;
 const P0: f64   = 1.0;
-const N:  usize = 10000;
+const N:  usize = 15000;
 const KN: f64   = K / (N as f64);
 
 // T(i) = T0 exp(-ik/N)

@@ -37,10 +37,10 @@ impl <'a> fmt::Display for KeyPenaltyResult<'a>
 }
 
 static BASE_PENALTY: KeyMap<f64> = KeyMap([
-	3.0, 1.0, 1.0, 1.0, 3.0,    3.0, 1.0, 1.0, 1.0, 3.0, 4.0,
-	0.5, 0.5, 0.0, 0.0, 1.0,    1.0, 0.0, 0.0, 0.5, 0.5, 2.0,
-	3.0, 2.5, 2.0, 2.0, 3.0,    3.0, 2.0, 2.0, 2.5, 3.0,
-	0.0]);
+	3.0, 1.0, 1.0, 1.5, 3.0,    3.0, 1.5, 1.0, 1.0, 3.0, 4.0,
+	0.5, 0.5, 0.0, 0.0, 1.5,    1.5, 0.0, 0.0, 0.5, 0.5, 2.0,
+	2.0, 2.0, 1.5, 1.5, 2.5,    2.5, 1.5, 1.5, 2.0, 2.0,
+	                    0.0,    0.0]);
 
 pub fn init<'a>()
 -> Vec<KeyPenalty<'a>>
@@ -70,7 +70,7 @@ pub fn init<'a>()
 		name: "long jump",
 	});
 
-	// Penalise 8 points for jumping from top to bottom row or from bottom to
+	// Penalise 5 points for jumping from top to bottom row or from bottom to
 	// top row on consecutive fingers, except for middle finger-top row ->
 	// index finger-bottom row.
 	penalties.push(KeyPenalty {
@@ -83,7 +83,7 @@ pub fn init<'a>()
 		name: "pinky/ring twist",
 	});
 
-	// Penalise 10 points for reversing a roll at the end of the hand, i.e.
+	// Penalise 20 points for reversing a roll at the end of the hand, i.e.
 	// using the ring, pinky, then middle finger of the same hand, or the
 	// middle, pinky, then ring of the same hand.
 	penalties.push(KeyPenalty {
@@ -100,14 +100,26 @@ pub fn init<'a>()
 		name: "alternating hand",
 	});
 
-	// Penalise 0.25 points for rolling outwards.
+	// Penalise 0.125 points for rolling outwards.
 	penalties.push(KeyPenalty {
 		name: "roll out",
 	});
 
-	// Award 0.25 points for rolling inwards.
+	// Award 0.125 points for rolling inwards.
 	penalties.push(KeyPenalty {
 		name: "roll in",
+	});
+
+	// Penalise 3 points for jumping from top to bottom row or from bottom to
+	// top row on the same finger with a keystroke in between.
+	penalties.push(KeyPenalty {
+		name: "long jump sandwich",
+	});
+
+	// Penalise 10 points for three consecutive keystrokes going up or down the
+	// three rows of the keyboard in a roll.
+	penalties.push(KeyPenalty {
+		name: "twist",
 	});
 
 	penalties
@@ -266,7 +278,7 @@ fn penalize<'a, 'b>(
 		}
 
 		// 3: Long jump.
-		if curr.finger == old1.finger {
+		if curr.hand == old1.hand && curr.finger == old1.finger {
 			if curr.row == Row::Top && old1.row == Row::Bottom ||
 			   curr.row == Row::Bottom && old1.row == Row::Top {
 				let penalty = 10.0 * count;
@@ -288,7 +300,7 @@ fn penalize<'a, 'b>(
 			  (curr.finger == Finger::Index  && (old1.finger == Finger::Middle ||
 			                                     old1.finger == Finger::Ring) &&
 			   curr.row == Row::Top && old1.row == Row::Bottom) {
-				let penalty = 8.0 * count;
+				let penalty = 5.0 * count;
 				if detailed {
 					*result[4].high_keys.entry(slice2).or_insert(0.0) += penalty;
 					result[4].total += penalty;
@@ -300,10 +312,10 @@ fn penalize<'a, 'b>(
 		// 5: Pinky/ring twist.
 		if (curr.finger == Finger::Ring && old1.finger == Finger::Pinky &&
 		    (curr.row == Row::Home && old1.row == Row::Top ||
-		     curr.row == Row::Bottom && old1.row == Row::Home)) ||
+		     curr.row == Row::Bottom && old1.row == Row::Top)) ||
 		   (curr.finger == Finger::Pinky && old1.finger == Finger::Ring &&
 		    (curr.row == Row::Top && old1.row == Row::Home ||
-		     curr.row == Row::Home && old1.row == Row::Bottom)) {
+		     curr.row == Row::Top && old1.row == Row::Bottom)) {
 			let penalty = 10.0 * count;
 			if detailed {
 				*result[5].high_keys.entry(slice2).or_insert(0.0) += penalty;
@@ -313,14 +325,9 @@ fn penalize<'a, 'b>(
 		}
 
 		// 9: Roll out.
-		if old1.finger == Finger::Ring && curr.finger == Finger::Pinky ||
-		   old1.finger == Finger::Middle &&
-		       (curr.finger == Finger::Ring ||
-		        curr.finger == Finger::Pinky) ||
-		   old1.finger == Finger::Index &&
-		       (curr.finger == Finger::Middle ||
-		        curr.finger == Finger::Ring ||
-		        curr.finger == Finger::Pinky) {
+		if curr.hand == old1.hand &&
+		   old1.finger != Finger::Thumb &&
+		   is_roll_out(curr.finger, old1.finger) {
 			let penalty = 0.125 * count;
 			if detailed {
 				*result[9].high_keys.entry(slice2).or_insert(0.0) += penalty;
@@ -330,14 +337,7 @@ fn penalize<'a, 'b>(
 		}
 
 		// 10: Roll in.
-		if old1.finger == Finger::Pinky &&
-		       (curr.finger == Finger::Ring ||
-		        curr.finger == Finger::Middle ||
-		        curr.finger == Finger::Index) ||
-		   old1.finger == Finger::Ring &&
-		       (curr.finger == Finger::Middle ||
-		        curr.finger == Finger::Index) ||
-		   old1.finger == Finger::Middle && curr.finger == Finger::Index {
+		if curr.hand == old1.hand && is_roll_in(curr.finger, old1.finger) {
 			let penalty = -0.125 * count;
 			if detailed {
 				*result[10].high_keys.entry(slice2).or_insert(0.0) += penalty;
@@ -353,15 +353,43 @@ fn penalize<'a, 'b>(
 		None => { return total },
 	};
 
-	// 6: Roll reversal.
 	if curr.hand == old1.hand && old1.hand == old2.hand {
+		// 6: Roll reversal.
 		if (curr.finger == Finger::Middle && old1.finger == Finger::Pinky && old2.finger == Finger::Ring) ||
 		    curr.finger == Finger::Ring && old1.finger == Finger::Pinky && old2.finger == Finger::Middle {
 			let slice3 = &string[(len - 3)..len];
-			let penalty = 10.0 * count;
+			let penalty = 20.0 * count;
 			if detailed {
 				*result[6].high_keys.entry(slice3).or_insert(0.0) += penalty;
 				result[6].total += penalty;
+			}
+			total += penalty;
+		}
+
+		// 12: Twist.
+		if ((curr.row == Row::Top && old1.row == Row::Home && old2.row == Row::Bottom) ||
+		    (curr.row == Row::Bottom && old1.row == Row::Home && old2.row == Row::Top)) &&
+		   ((is_roll_out(curr.finger, old1.finger) && is_roll_out(old1.finger, old2.finger)) ||
+		   	(is_roll_in(curr.finger, old1.finger) && is_roll_in(old1.finger, old2.finger))) {
+			let slice3 = &string[(len - 3)..len];
+			let penalty = 10.0 * count;
+			if detailed {
+				*result[12].high_keys.entry(slice3).or_insert(0.0) += penalty;
+				result[12].total += penalty;
+			}
+			total += penalty;
+		}
+	}
+
+	// 11: Long jump sandwich.
+	if curr.hand == old2.hand && curr.finger == old2.finger {
+		if curr.row == Row::Top && old2.row == Row::Bottom ||
+		   curr.row == Row::Bottom && old2.row == Row::Top {
+			let penalty = 3.0 * count;
+			if detailed {
+				let slice3 = &string[(len - 3)..len];
+				*result[11].high_keys.entry(slice3).or_insert(0.0) += penalty;
+				result[11].total += penalty;
 			}
 			total += penalty;
 		}
@@ -394,4 +422,24 @@ fn penalize<'a, 'b>(
 	}
 
 	total
+}
+
+fn is_roll_out(curr: Finger, prev: Finger) -> bool {
+	match curr {
+		Finger::Thumb  => false,
+		Finger::Index  => prev == Finger::Thumb,
+		Finger::Middle => prev == Finger::Thumb || prev == Finger::Index,
+		Finger::Ring   => prev != Finger::Pinky && prev != Finger::Ring,
+		Finger::Pinky  => prev != Finger::Pinky
+	}
+}
+
+fn is_roll_in(curr: Finger, prev: Finger) -> bool {
+	match curr {
+		Finger::Thumb  => prev != Finger::Thumb,
+		Finger::Index  => prev != Finger::Thumb && prev != Finger::Index,
+		Finger::Middle => prev == Finger::Pinky || prev == Finger::Ring,
+		Finger::Ring   => prev == Finger::Pinky,
+		Finger::Pinky  => false,
+	}
 }
