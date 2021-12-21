@@ -181,15 +181,16 @@ pub fn print_result<'a>(
 }
 
 // Take ownership of the list and give it back as a hack to make the borrow checker happy :^)
+
 fn list_insert_ordered(mut list: LinkedList<BestLayoutsEntry>, entry: BestLayoutsEntry)
 -> LinkedList<BestLayoutsEntry>
 {
 	{
 		// Find where to add our new entry to, since the list is sorted.
-		let mut iter = list.iter_mut();
+		let mut cursor = list.cursor_front_mut();
 		loop {
 			{
-				let opt_next = iter.peek_next();
+				let opt_next = cursor.peek_next();
 				if let Some(next) = opt_next {
 					let cmp = entry.cmp(next);
 					if cmp == Ordering::Less {
@@ -200,11 +201,11 @@ fn list_insert_ordered(mut list: LinkedList<BestLayoutsEntry>, entry: BestLayout
 				}
 			}
 
-			iter.next();
+			cursor.move_next();
 		}
 
 		// Add to list.
-		iter.insert_next(entry);
+		cursor.insert_after(entry);
 	}
 	list
 }

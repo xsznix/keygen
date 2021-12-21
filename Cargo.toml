@@ -5,8 +5,8 @@ authors = ["Xuming Zeng <xsznix@gmail.com>"]
 
 [dependencies]
 rand = "0.3"
-getopts = "0.2"
+getopts = "0.2.21"
 
 [profile.dev]
 opt-level = 3
-debug = true
+debug = false
