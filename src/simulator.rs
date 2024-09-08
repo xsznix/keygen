@@ -185,6 +185,13 @@ pub fn print_result<'a>(
 fn list_insert_ordered(mut list: LinkedList<BestLayoutsEntry>, entry: BestLayoutsEntry)
 -> LinkedList<BestLayoutsEntry>
 {
+	if let Some(first) = list.front() {
+		let cmp = entry.cmp(first);
+		if cmp == Ordering::Less {
+			list.push_front(entry);
+			return list;
+		}
+	}
 	{
 		// Find where to add our new entry to, since the list is sorted.
 		let mut cursor = list.cursor_front_mut();
